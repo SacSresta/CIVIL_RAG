@@ -10,6 +10,8 @@ import operator
 # Import utilities and tools from separate modules
 from .utils import get_vector_store_info
 from .tools_utils import rag_search, web_search
+from dotenv import load_dotenv
+load_dotenv()
 
 # Enhanced state definition with proper annotations
 class AgentState(TypedDict):
