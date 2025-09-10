@@ -182,4 +182,4 @@ api_keys.txt
 
 # VS Code history files
 .history/
-.tests/
+tests/
