@@ -1,18 +1,15 @@
 from langchain.prompts import ChatPromptTemplate
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.tools import tool
 from langchain_groq import ChatGroq
-from langchain_community.tools import BraveSearch
 from langgraph.graph import StateGraph, END, START
-from langgraph.graph.message import add_messages
-from langgraph.prebuilt import ToolNode
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 import civic_rag.config as config
-import os
-from typing import List, Any, TypedDict, Annotated, Sequence
+from typing import TypedDict, Annotated, Sequence
 from langchain_core.output_parsers import StrOutputParser
 import operator
+
+# Import utilities and tools from separate modules
+from .utils import get_vector_store_info
+from .tools_utils import rag_search, web_search
 
 # Enhanced state definition with proper annotations
 class AgentState(TypedDict):
@@ -32,41 +29,6 @@ class AgentState(TypedDict):
     legal_analysis: str
     final_answer: str
 
-def build_vector_store(docs: List[Any], persist_directory: str = config.CHROMA_DIR):
-    """Build and persist a vector store from documents."""
-    embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
-    vectordb = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
-    vectordb.persist()
-    return vectordb
-
-def load_vector_store(persist_directory: str = config.CHROMA_DIR):
-    """Load an existing vector store."""
-    embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
-    vectordb = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
-    return vectordb
-
-@tool 
-def rag_search(query: str) -> str:
-    """Searches the RAG vector store for relevant information about protest guidance."""
-    try:
-        vectordb = load_vector_store()
-        retriever = vectordb.as_retriever(search_kwargs={"k": 5})
-        docs = retriever.invoke(query)
-        return "\n".join([doc.page_content for doc in docs])
-    except Exception as e:
-        return f"RAG search failed: {e}"
-
-@tool
-def web_search(query: str) -> str:
-    """Searches the web for up-to-date information about Nepal protests using BraveSearch."""
-    try:
-        searcher = BraveSearch.from_api_key(api_key='BSAZanmMIarkoXHk2K2C2ynx4YDs0UW')
-        results = searcher.run(query)
-        if isinstance(results, list):
-            return "\n".join(results[:5])
-        return str(results)
-    except Exception as e:
-        return f"Web search failed: {e}"
 
 # Parallel web search nodes for different aspects
 def economic_web_search_node(state: AgentState) -> dict:
@@ -433,6 +395,7 @@ def get_agent():
     except:
         print("Graph visualization not available")
     return protest_graph
+
 
 # Helper function to run the agent
 def run_protest_guidance(question: str):

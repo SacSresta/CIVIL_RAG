@@ -138,10 +138,6 @@ venv/
 .venv/
 env/
 
-# Data directories
-data/
-civic_rag/data/
-*/data/
 
 # Database files
 *.db

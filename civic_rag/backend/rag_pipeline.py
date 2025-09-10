@@ -8,7 +8,8 @@ from langchain_core.messages import HumanMessage
 import civic_rag.config as config
 import os
 from typing import List, Any
-from civic_rag.backend.chatmodels import get_agent, load_vector_store
+from civic_rag.backend.chatmodels import get_agent
+from civic_rag.backend.utils import load_vector_store
 
 
 def answer_query(question: str) -> str:
