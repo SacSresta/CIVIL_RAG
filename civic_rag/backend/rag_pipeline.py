@@ -4,31 +4,33 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
 import civic_rag.config as config
 import os
 from typing import List, Any
-from civic_rag.backend.chatmodels import get_prompted_llm,get_agent, load_vector_store
-
-
-def get_qa_chain():
-    vectordb = load_vector_store()
-    retriever = vectordb.as_retriever()
-    llm, prompt = get_prompted_llm()  # Get LLM and prompt instead of agent
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm, 
-        retriever=retriever,
-        chain_type_kwargs={"prompt": prompt}
-    )
-    return qa_chain
+from civic_rag.backend.chatmodels import get_agent, load_vector_store
 
 
 def answer_query(question: str) -> str:
-    # Option 1: Use the agent directly (recommended)
+    """Answer a query using the LangGraph-based protest guidance system."""
     agent = get_agent()
-    result = agent.invoke({"input": question})
-    return result.get("output", str(result))
     
-    # Option 2: Use QA chain with prompted LLM (uncomment to use)
+    # Create initial state with the user's question
+    initial_state = {
+        "messages": [HumanMessage(content=question)],
+        "context": "",
+        "web_results": "",
+        "rag_results": "",
+        "final_answer": ""
+    }
+    
+    # Run the graph
+    result = agent.invoke(initial_state)
+    
+    # Return the final answer from the state
+    return result.get("final_answer", "I apologize, but I couldn't generate a response. Please try again.")
+    
+    # Legacy QA chain approach (commented out, kept for reference)
     # qa_chain = get_qa_chain()
     # result = qa_chain.invoke({"query": question})
     # return result.get("result", str(result))
