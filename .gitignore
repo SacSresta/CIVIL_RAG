@@ -182,4 +182,15 @@ api_keys.txt
 
 # VS Code history files
 .history/
+
+# Test files and directories
 tests/
+test_*.py
+*_test.py
+*_tests.py
+test/
+testing/
+__tests__/
+.pytest_cache/
+pytest.ini
+.testmondata
